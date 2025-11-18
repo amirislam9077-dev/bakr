@@ -1,0 +1,346 @@
+.dash-container {
+  padding: 24px;
+  background-color: #f9fafb;
+  min-height: 100%;
+}
+
+.dash-header {
+  margin-bottom: 24px;
+  margin-top: -50px;
+}
+
+.dash-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.dash-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Statistics Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat-icon.green {
+  background-color: #d1fae5;
+  color: #059669;
+}
+
+.stat-icon.yellow {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.stat-icon.purple {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+
+.stat-icon.pink {
+  background-color: #fce7f3;
+  color: #db2777;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Quick Actions */
+.quick-actions-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+  margin-top: -20px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin: -10px 0 16px 0;
+  letter-spacing: 0.05em;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.action-btn:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.action-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.action-icon.green {
+  background-color: #d1fae5;
+  color: #059669;
+}
+
+.action-icon.gray {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.action-btn span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* Create Button Section */
+.dash-create-section {
+  margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.dash-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #059669;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.dash-create-btn:hover {
+  background-color: #047857;
+}
+
+.dash-create-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+.dash-view-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.dash-view-btn:hover {
+  background-color: #4b5563;
+}
+
+.dash-view-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+/* Recent Activity */
+.recent-activity-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.activity-header .section-title {
+  margin: 0;
+}
+
+.view-all-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.view-all-btn:hover {
+  color: #2563eb;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.activity-info {
+  flex: 1;
+}
+
+.activity-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 2px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.activity-location {
+  font-size: 12px;
+  color: #6b7280;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.activity-type {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.activity-type.mountain {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.activity-type.heritage-site {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.activity-type.other {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
