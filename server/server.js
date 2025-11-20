@@ -213,7 +213,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Start server
+// Start serveggr
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   console.log(`📍 API endpoint: http://localhost:${PORT}/api/sites`);
