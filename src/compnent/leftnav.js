@@ -20,6 +20,7 @@ const locations = sites.map(site => ({
 }));
 
 const LeftNav = ({ onLocationSelect, onViewSite }) => {
+  const [selectedLocation, setSelectedLocation] = React.useState(null);
   return (
     <aside className="left-nav">
       <div className="search-container">
@@ -51,11 +52,14 @@ const LeftNav = ({ onLocationSelect, onViewSite }) => {
         {locations.map((location, index) => (
           <div
             key={index}
-            className="location-card"
-            onClick={() => onLocationSelect({
-              name: location.name,
-              coordinates: location.coordinates.split(',').map(coord => parseFloat(coord.trim()))
-            })}
+            className={`location-card ${selectedLocation === index ? 'selected' : ''}`}
+            onClick={() => {
+              setSelectedLocation(index);
+              onLocationSelect({
+                name: location.name,
+                coordinates: location.coordinates.split(',').map(coord => parseFloat(coord.trim()))
+              });
+            }}
           >
             <div className="location-details">
               <div className="location-name-row">

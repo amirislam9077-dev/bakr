@@ -96,18 +96,9 @@
   cursor: pointer;
 }
 
-.nav-link:hover {
-  background-color: #e5e7eb;
-  color: #1f2937;
-}
-
 .nav-item.active .nav-link {
   background-color: #059669;
   color: white;
-}
-
-.nav-item.active .nav-link:hover {
-  background-color: #047857;
 }
 
 .location-card {
@@ -122,15 +113,16 @@
   transform-origin: center;
 }
 
-.location-card:hover {
-  border-color: #059669;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
-  transform: scale(1.02);
-  background-color: #f0fdf4;
-}
-
 .location-card:active {
   transform: scale(0.98);
+}
+
+.location-card.selected {
+  border: 1.5px solid #059669;
+  box-shadow: 0 0 0 1px #05966933;
+  position: relative;
+  z-index: 1;
+  background-color: #f8faf9;
 }
 
 .location-name-row {
@@ -153,14 +145,6 @@
   transition: all 0.2s ease;
 }
 
-.location-card:hover .external-link-icon {
-  color: #059669;
-  transform: translate(2px, -2px);
-}
-
-.location-card:hover .location-name {
-  color: #059669;
-}
 
 .location-type {
   font-size: 11px;
@@ -168,9 +152,6 @@
   transition: color 0.2s ease;
 }
 
-.location-card:hover .location-type {
-  color: #047857;
-}
 
 .nav-icon {
   width: 20px;
