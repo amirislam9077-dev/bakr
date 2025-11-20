@@ -27,6 +27,7 @@ const createLocationIcon = () => {
 };
 
 const Map = ({ selectedLocation, onViewSite }) => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
@@ -48,6 +49,7 @@ const Map = ({ selectedLocation, onViewSite }) => {
       // Remove existing popup if any
       if (popupRef.current) {
         popupRef.current.remove();
+        popupRef.current = null;
       }
 
       // Always remove existing location marker if any
@@ -62,6 +64,32 @@ const Map = ({ selectedLocation, onViewSite }) => {
         icon: locationIcon, 
         zIndexOffset: 1000 
       }).addTo(mapInstanceRef.current);
+      
+      // Store the current coordinates for later use
+      locationMarkerRef.current.coordinates = [lat, lng];
+      
+      // Add click handler to the marker to toggle popup
+      locationMarkerRef.current.on('click', (e) => {
+        // Close if already open
+        if (popupRef.current) {
+          popupRef.current.remove();
+          popupRef.current = null;
+          return;
+        }
+        
+        // Otherwise open the popup
+        openPopupAt(lat, lng);
+        
+        // Ensure the popup is visible in the viewport
+        setTimeout(() => {
+          if (mapInstanceRef.current && popupRef.current) {
+            // Get the popup's pixel position
+            const point = mapInstanceRef.current.latLngToContainerPoint([lat, lng]);
+            // Adjust the view to ensure the popup is visible
+            mapInstanceRef.current.panBy([0, -100], { animate: true });
+          }
+        }, 50);
+      });
 
       // Find the marker for this location by comparing coordinates with tolerance
       let foundMarker = null;
@@ -108,53 +136,8 @@ const Map = ({ selectedLocation, onViewSite }) => {
           }, 100);
         }, 500);
       } else {
-        // Fallback: create popup with same styled content
-        const site = sites.find(s =>
-          Math.abs(s.coordinates.lat - lat) < 0.0001 &&
-          Math.abs(s.coordinates.lng - lng) < 0.0001
-        );
-        if (site) {
-          const popupContent = '<div class="modern-popup">' +
-            '<div class="popup-header" style="background-color: #059669;">' +
-              '<h3 class="popup-title">' + site.name + '</h3>' +
-              '<span class="popup-badge">' + site.type + '</span>' +
-            '</div>' +
-            '<div class="popup-body">' +
-              '<div class="info-row">' +
-                '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                  '<circle cx="12" cy="10" r="3"/>' +
-                  '<path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>' +
-                '</svg>' +
-                '<span class="info-text">' + site.city + ', ' + site.state + '</span>' +
-              '</div>' +
-              '<div class="info-row">' +
-                '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                  '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>' +
-                  '<line x1="16" y1="2" x2="16" y2="6"/>' +
-                  '<line x1="8" y1="2" x2="8" y2="6"/>' +
-                  '<line x1="3" y1="10" x2="21" y2="10"/>' +
-                '</svg>' +
-                '<span class="info-text">' + site.period + '</span>' +
-              '</div>' +
-            '</div>' +
-            '<button class="view-details-btn" onclick="window.dispatchEvent(new CustomEvent(\'openViewPanel\', { detail: \'' + site.name + '\' }))">' +
-              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
-                '<circle cx="12" cy="12" r="3"/>' +
-              '</svg>' +
-              'View Details' +
-            '</button>' +
-          '</div>';
-
-          popupRef.current = L.popup({
-            className: 'custom-popup-container',
-            closeButton: true,
-            maxWidth: 280
-          })
-            .setLatLng([lat, lng])
-            .setContent(popupContent)
-            .openOn(mapInstanceRef.current);
-        }
+        // Show popup for the selected location
+        openPopupAt(lat, lng);
 
         // Remove existing location marker if any
         if (locationMarkerRef.current) {
@@ -175,6 +158,116 @@ const Map = ({ selectedLocation, onViewSite }) => {
     }
   }, [selectedLocation]);
 
+  // Function to open popup at specific coordinates
+  const openPopupAt = (lat, lng) => {
+    const site = sites.find(s =>
+      Math.abs(s.coordinates.lat - lat) < 0.0001 &&
+      Math.abs(s.coordinates.lng - lng) < 0.0001
+    );
+    
+    if (site) {
+      const popupContent = createPopupContent(site);
+      
+      // Create popup with offset to position it above the marker
+      popupRef.current = L.popup({
+        className: 'custom-popup-container',
+        closeButton: true,
+        maxWidth: 280,
+        autoClose: false,
+        closeOnClick: false,
+        offset: L.point(0, -40) // This moves the popup up by 40 pixels
+      })
+        .setLatLng([lat, lng])
+        .setContent(popupContent);
+        
+      // Open the popup
+      popupRef.current.openOn(mapInstanceRef.current);
+      
+      // Ensure the popup is in the correct position
+      if (popupRef.current && popupRef.current._container) {
+        const popup = popupRef.current._container;
+        popup.style.marginTop = '-40px'; // Additional offset to ensure it's above the marker
+      }
+        
+      // Add click handler to close button
+      const closeButton = document.querySelector('.leaflet-popup-close-button');
+      if (closeButton) {
+        // Remove any existing event listeners to prevent duplicates
+        const newCloseButton = closeButton.cloneNode(true);
+        closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+        
+        newCloseButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (popupRef.current) {
+            popupRef.current.remove();
+            popupRef.current = null;
+          }
+        });
+      }
+    }
+  };
+  
+  // Create popup content
+  const createPopupContent = (site) => {
+    return '<div class="modern-popup">' +
+      '<div class="popup-header" style="background-color: #059669;">' +
+        '<h3 class="popup-title">' + site.name + '</h3>' +
+        '<span class="popup-badge">' + site.type + '</span>' +
+      '</div>' +
+      '<div class="popup-body">' +
+        '<div class="info-row">' +
+          '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<circle cx="12" cy="10" r="3"/>' +
+            '<path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>' +
+          '</svg>' +
+          '<span class="info-text">' + site.city + ', ' + site.state + '</span>' +
+        '</div>' +
+        '<div class="info-row">' +
+          '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>' +
+            '<line x1="16" y1="2" x2="16" y2="6"/>' +
+            '<line x1="8" y1="2" x2="8" y2="6"/>' +
+            '<line x1="3" y1="10" x2="21" y2="10"/>' +
+          '</svg>' +
+          '<span class="info-text">' + site.period + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<button class="view-details-btn" onclick="window.dispatchEvent(new CustomEvent(\'openViewPanel\', { detail: \'' + site.name + '\' }))">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+          '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
+          '<circle cx="12" cy="12" r="3"/>' +
+        '</svg>' +
+        'View Details' +
+      '</button>' +
+    '</div>';
+  };
+
+  // Handle map click to close popup
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      const handleMapClick = (e) => {
+        // Check if click is on a marker or popup
+        if (e.originalEvent.target.closest('.leaflet-marker-icon, .leaflet-popup')) {
+          return;
+        }
+        
+        // Close popup if open
+        if (popupRef.current) {
+          popupRef.current.remove();
+          popupRef.current = null;
+        }
+      };
+      
+      mapInstanceRef.current.on('click', handleMapClick);
+      
+      return () => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.off('click', handleMapClick);
+        }
+      };
+    }
+  }, []);
+  
   // Listen for view panel open events
   useEffect(() => {
     const handleOpenViewPanel = (event) => {

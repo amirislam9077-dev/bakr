@@ -14,6 +14,16 @@
   height: 100% !important;
 }
 
+/* Location Pin */
+.location-pin {
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+.location-pin svg {
+  filter: none !important;
+}
+
 /* Google Maps Style Marker */
 .google-marker {
   position: relative;
@@ -30,12 +40,12 @@
 }
 
 .google-marker svg {
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  filter: none;
   transition: filter 0.2s ease;
 }
 
 .google-marker:hover svg {
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  filter: none;
 }
 
 /* Active state */
@@ -141,40 +151,31 @@
   justify-content: center;
   gap: 6px;
   width: 100%;
-  background: white;
-  color: #059669;
+  background-color: #059669;
+  color: white;
   border: none;
-  padding: 8px;
-  font-size: 10px;
-  font-weight: 600;
+  border-radius: 4px;
+  padding: 10px 15px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   text-decoration: none;
   box-sizing: border-box;
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-  animation: pulse 2s infinite;
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-@keyframes pulse {
-  0% {
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-  }
-  50% {
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-  }
-  100% {
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-  }
-}
 
 .view-details-btn:hover {
-  background: #f0fdf4;
-  color: #047857;
+  background-color: #047857;
+  color: white;
   text-decoration: none;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(5, 150, 105, 0.4);
-  animation: none;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
 }
 
 .view-details-btn svg {
