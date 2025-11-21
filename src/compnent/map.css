@@ -14,6 +14,147 @@
   height: 100% !important;
 }
 
+/* Filter Button */
+.filter-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  z-index: 1001;
+}
+
+.filter-button:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.filter-button.active {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.filter-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 280px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 1002;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.filter-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.filter-section {
+  padding: 12px 16px;
+}
+
+.filter-option {
+  margin-bottom: 16px;
+}
+
+.filter-option:last-child {
+  margin-bottom: 0;
+}
+
+.filter-option label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.filter-option select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background-color: #fff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 32px;
+}
+
+.filter-option select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 /* Location Pin */
 .location-pin {
   filter: none !important;
@@ -310,6 +451,64 @@
   font-weight: bold;
 }
 
+/* Cluster Toggle Button */
+.cluster-toggle {
+  position: absolute;
+  bottom: 60px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.cluster-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background-color: #059669;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  min-width: 130px;
+  width: 130px;
+  height: 34px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.cluster-btn:hover {
+  background-color: #047857;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.cluster-btn .btn-icon {
+  width: 14px;
+  height: 14px;
+  color: white;
+  stroke-width: 2.5;
+  flex-shrink: 0;
+}
+
+.cluster-btn.active {
+  background-color: #047857;
+  color: white;
+}
+
+.cluster-btn.active:hover {
+  background-color: #065f46;
+}
+
 /* Map Style Switcher */
 .map-style-switcher {
   position: absolute;
@@ -325,18 +524,24 @@
 .style-toggle-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   background-color: #059669;
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 6px 10px;
+  padding: 8px 15px;
   font-size: 12px;
   font-weight: 600;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
+  min-width: 130px;
+  width: 130px;
+  height: 34px;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .style-toggle-btn:hover {
@@ -412,45 +617,6 @@
   height: 14px;
   color: #6b7280;
   flex-shrink: 0;
-}
-
-/* Cluster Toggle Button */
-.cluster-toggle {
-  position: absolute;
-  bottom: 20px;
-  right: 140px;
-  z-index: 1000;
-}
-
-.cluster-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background-color: #6b7280;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-}
-
-.cluster-btn:hover {
-  background-color: #4b5563;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
-}
-
-.cluster-btn.active {
-  background-color: #059669;
-}
-
-.cluster-btn.active:hover {
-  background-color: #047857;
 }
 
 .cluster-btn .btn-icon {

@@ -7,6 +7,7 @@ import 'leaflet.markercluster';
 import './map.css';
 import { sites } from './sites';
 import { MapPin } from 'lucide-react';
+import FilterComponent from './filter';
 
 // Create a custom location icon
 const createLocationIcon = () => {
@@ -33,6 +34,12 @@ const Map = ({ selectedLocation, onViewSite }) => {
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
   const [currentStyle, setCurrentStyle] = useState('OpenStreetMap');
   const [isClusterEnabled, setIsClusterEnabled] = useState(false);
+  const [filters, setFilters] = useState({
+    status: 'All',
+    type: 'All',
+    date: 'All',
+    region: 'All',
+  });
   const tileLayerRef = useRef(null);
   const popupRef = useRef(null);
   const markersRef = useRef({});
@@ -290,6 +297,7 @@ const Map = ({ selectedLocation, onViewSite }) => {
       // Initialize map centered on Saudi Arabia with closer zoom (zoom in first)
       const map = L.map(mapRef.current, {
         zoomControl: false, // Disable default zoom control
+        attributionControl: false, // This removes the 'Powered by Leaflet' text
         zoom: 7,
         center: [23.8859, 45.0792]
       });
@@ -542,6 +550,9 @@ const Map = ({ selectedLocation, onViewSite }) => {
         height: '100%'
       }}></div>
 
+      {/* Filter Button */}
+      <FilterComponent onFilterChange={(newFilters) => setFilters(newFilters)} />
+      
       {/* Zoom Controls */}
       <div className="zoom-controls">
         <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">

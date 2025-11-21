@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { sites } from './sites';
 import './leftnav.css';
@@ -21,6 +21,19 @@ const locations = sites.map(site => ({
 
 const LeftNav = ({ onLocationSelect, onViewSite }) => {
   const [selectedLocation, setSelectedLocation] = React.useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredLocations = useMemo(() => {
+    if (!searchTerm.trim()) return locations;
+    
+    const term = searchTerm.toLowerCase();
+    return locations.filter(location => 
+      location.name.toLowerCase().includes(term) ||
+      (location.city && location.city.toLowerCase().includes(term)) ||
+      (location.type && location.type.toLowerCase().includes(term)) ||
+      (location.region && location.region.toLowerCase().includes(term))
+    );
+  }, [searchTerm]);
   return (
     <aside className="left-nav">
       <div className="search-container">
@@ -41,15 +54,18 @@ const LeftNav = ({ onLocationSelect, onViewSite }) => {
             type="text"
             className="search-input"
             placeholder="Search locations..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="locations-count">
-          {locations.length} places found
+          {filteredLocations.length} {filteredLocations.length === 1 ? 'place' : 'places'} found
         </div>
       </div>
 
       <div className="locations-list">
-        {locations.map((location, index) => (
+        {filteredLocations.length > 0 ? (
+          filteredLocations.map((location, index) => (
           <div
             key={index}
             className={`location-card ${selectedLocation === index ? 'selected' : ''}`}
@@ -87,7 +103,12 @@ const LeftNav = ({ onLocationSelect, onViewSite }) => {
               <div className="location-type">{location.type} • {location.city} • {location.statePeriod}</div>
             </div>
           </div>
-        ))}
+          ))
+        ) : (
+          <div className="no-results">
+            No locations found matching "{searchTerm}"
+          </div>
+        )}
       </div>
     </aside>
   );
