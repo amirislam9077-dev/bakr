@@ -35,11 +35,12 @@ const Map = ({ selectedLocation, onViewSite }) => {
   const [currentStyle, setCurrentStyle] = useState('OpenStreetMap');
   const [isClusterEnabled, setIsClusterEnabled] = useState(false);
   const [filters, setFilters] = useState({
-    status: 'All',
-    type: 'All',
-    date: 'All',
-    region: 'All',
+    siteType: [],
+    city: '',
+    state: '',
+    period: []
   });
+  const [filteredCount, setFilteredCount] = useState(sites.length);
   const tileLayerRef = useRef(null);
   const popupRef = useRef(null);
   const markersRef = useRef({});
@@ -249,6 +250,134 @@ const Map = ({ selectedLocation, onViewSite }) => {
     '</div>';
   };
 
+  // Handle filter changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || Object.keys(markersRef.current).length === 0) return;
+
+    // Check if any filters are active
+    const hasActiveFilters =
+      filters.siteType.length > 0 ||
+      filters.city !== '' ||
+      filters.state !== '' ||
+      filters.period.length > 0;
+
+    // If no filters are active, show all markers
+    if (!hasActiveFilters) {
+      // Update count to show all sites
+      setFilteredCount(sites.length);
+
+      // Show all markers
+      sites.forEach(site => {
+        const markerKey = `${site.coordinates.lat}-${site.coordinates.lng}`;
+        const marker = markersRef.current[markerKey];
+        if (marker && !mapInstanceRef.current.hasLayer(marker)) {
+          marker.addTo(mapInstanceRef.current);
+        }
+      });
+      return;
+    }
+
+    // Filter sites based on active filters
+    const filteredSites = sites.filter(site => {
+      // Filter by site type
+      if (filters.siteType.length > 0 && !filters.siteType.includes(site.type)) {
+        return false;
+      }
+
+      // Filter by city
+      if (filters.city && site.city !== filters.city) {
+        return false;
+      }
+
+      // Filter by state
+      if (filters.state && site.state !== filters.state) {
+        return false;
+      }
+
+      // Filter by period
+      if (filters.period.length > 0 && !filters.period.includes(site.period)) {
+        return false;
+      }
+
+      return true;
+    });
+
+    console.log('Filtered sites:', filteredSites.map(s => s.name));
+    console.log('Total filtered:', filteredSites.length);
+
+    // Update filtered count
+    setFilteredCount(filteredSites.length);
+
+    // Show/hide markers based on filter
+    const visibleMarkers = [];
+
+    sites.forEach(site => {
+      const markerKey = `${site.coordinates.lat}-${site.coordinates.lng}`;
+      const marker = markersRef.current[markerKey];
+
+      if (marker) {
+        const isVisible = filteredSites.some(fs =>
+          fs.coordinates.lat === site.coordinates.lat &&
+          fs.coordinates.lng === site.coordinates.lng
+        );
+
+        if (isVisible) {
+          // Always try to add visible markers
+          try {
+            if (!mapInstanceRef.current.hasLayer(marker)) {
+              marker.addTo(mapInstanceRef.current);
+            }
+            visibleMarkers.push(marker);
+            console.log('Showing marker:', site.name);
+          } catch (error) {
+            console.error('Error adding marker:', site.name, error);
+          }
+        } else {
+          // Remove non-visible markers
+          try {
+            if (mapInstanceRef.current.hasLayer(marker)) {
+              mapInstanceRef.current.removeLayer(marker);
+            }
+          } catch (error) {
+            console.error('Error removing marker:', site.name, error);
+          }
+        }
+      } else {
+        console.warn('Marker not found for:', site.name);
+      }
+    });
+
+    console.log('Visible markers count:', visibleMarkers.length);
+
+    // Zoom to fit visible markers
+    if (visibleMarkers.length > 0) {
+      try {
+        if (visibleMarkers.length === 1) {
+          // For a single marker, use setView instead of fitBounds
+          const marker = visibleMarkers[0];
+          const latlng = marker.getLatLng();
+          mapInstanceRef.current.setView(latlng, 12, {
+            animate: true,
+            duration: 0.5
+          });
+          console.log('Zoomed to single marker at:', latlng);
+        } else {
+          // For multiple markers, use fitBounds
+          const group = new L.featureGroup(visibleMarkers);
+          mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1), {
+            animate: true,
+            duration: 0.5
+          });
+          console.log('Fitted bounds to multiple markers');
+        }
+      } catch (error) {
+        console.error('Error zooming to markers:', error);
+      }
+    } else {
+      console.warn('No visible markers to display');
+    }
+  }, [filters]);
+
   // Handle map click to close popup
   useEffect(() => {
     if (mapInstanceRef.current) {
@@ -257,16 +386,16 @@ const Map = ({ selectedLocation, onViewSite }) => {
         if (e.originalEvent.target.closest('.leaflet-marker-icon, .leaflet-popup')) {
           return;
         }
-        
+
         // Close popup if open
         if (popupRef.current) {
           popupRef.current.remove();
           popupRef.current = null;
         }
       };
-      
+
       mapInstanceRef.current.on('click', handleMapClick);
-      
+
       return () => {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.off('click', handleMapClick);
@@ -551,7 +680,11 @@ const Map = ({ selectedLocation, onViewSite }) => {
       }}></div>
 
       {/* Filter Button */}
-      <FilterComponent onFilterChange={(newFilters) => setFilters(newFilters)} />
+      <FilterComponent
+        onFilterChange={(newFilters) => setFilters(newFilters)}
+        filteredCount={filteredCount}
+        totalCount={sites.length}
+      />
       
       {/* Zoom Controls */}
       <div className="zoom-controls">

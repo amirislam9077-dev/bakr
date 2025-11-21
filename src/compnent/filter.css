@@ -1,0 +1,211 @@
+.filter-wrapper {
+  position: absolute;
+  top: 8px;
+  right: 60px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.filters-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: white;
+  color: #059669;
+  border: 2px solid #059669;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.filters-toggle-btn:hover {
+  background-color: #f0fdf4;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+}
+
+.filters-toggle-btn.active {
+  background-color: #059669;
+  color: white;
+}
+
+.filters-toggle-btn .chevron {
+  transition: transform 0.2s ease;
+}
+
+.filters-toggle-btn .chevron.open {
+  transform: rotate(180deg);
+}
+
+.filter-count-badge {
+  background-color: #059669;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+.filters-panel {
+  margin-top: 12px;
+  width: 280px;
+  max-height: 320px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow-y: auto;
+  animation: slideDown 0.2s ease-out;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filters-section {
+  padding: 6px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}
+
+.filters-section:last-child {
+  border-bottom: none;
+  padding-bottom: 8px;
+}
+
+.filters-section.clear-section {
+  padding: 8px 14px;
+  margin-top: 4px;
+}
+
+.filters-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.filters-buttons-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.filter-type-btn {
+  padding: 5px 6px;
+  background-color: white;
+  color: #374151;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.filter-type-btn:hover {
+  border-color: #059669;
+  background-color: #f0fdf4;
+  color: #059669;
+}
+
+.filter-type-btn.active {
+  background-color: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+.filters-select {
+  width: 100%;
+  padding: 5px 6px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 500;
+  color: #6b7280;
+  background-color: white;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 9px;
+  padding-right: 22px;
+}
+
+.filters-select:hover {
+  border-color: #059669;
+  color: #374151;
+}
+
+.filters-select:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+  color: #111827;
+}
+
+.filters-select option {
+  color: #111827;
+  font-weight: 500;
+}
+
+.clear-all-btn {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.clear-all-btn:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.clear-all-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .filter-wrapper {
+    top: 10px;
+    right: 10px;
+  }
+
+  .filters-panel {
+    width: 280px;
+  }
+}

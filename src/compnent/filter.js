@@ -1,94 +1,164 @@
 import React, { useState } from 'react';
-import { X, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Filter } from 'lucide-react';
+import './filter.css';
 
-const FilterComponent = ({ onFilterChange }) => {
+const FilterComponent = ({ onFilterChange, filteredCount, totalCount }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState({
-    status: 'All',
-    type: 'All',
-    date: 'All',
-    region: 'All',
+    siteType: [],
+    city: '',
+    state: '',
+    period: []
   });
 
-  const statusOptions = ['All', 'Active', 'Inactive', 'Maintenance'];
-  const typeOptions = ['All', 'Type 1', 'Type 2', 'Type 3'];
-  const dateOptions = ['All', 'Today', 'This Week', 'This Month'];
-  const regionOptions = ['All', 'Region 1', 'Region 2', 'Region 3'];
+  const siteTypes = ['Mountain', 'Heritage Site', 'Other', 'Valley'];
+  const periods = ['Ancient', 'Geological', 'Islamic', 'Modern'];
 
-  const handleFilterChange = (filterType, value) => {
-    const newFilters = { ...filters, [filterType]: value };
+  const handleTypeToggle = (type) => {
+    const newTypes = filters.siteType.includes(type)
+      ? filters.siteType.filter(t => t !== type)
+      : [...filters.siteType, type];
+
+    const newFilters = { ...filters, siteType: newTypes };
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
+  const handlePeriodToggle = (period) => {
+    const newPeriods = filters.period.includes(period)
+      ? filters.period.filter(p => p !== period)
+      : [...filters.period, period];
+
+    const newFilters = { ...filters, period: newPeriods };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  const handleSelectChange = (field, value) => {
+    const newFilters = { ...filters, [field]: value };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  const handleClearAll = () => {
+    const clearedFilters = {
+      siteType: [],
+      city: '',
+      state: '',
+      period: []
+    };
+    setFilters(clearedFilters);
+    onFilterChange(clearedFilters);
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    filters.siteType.length > 0 ||
+    filters.city !== '' ||
+    filters.state !== '' ||
+    filters.period.length > 0;
+
   return (
-    <div className="filter-container">
-      <button 
-        className={`filter-button ${isOpen ? 'active' : ''}`}
+    <div className="filter-wrapper">
+      <button
+        className={`filters-toggle-btn ${isOpen ? 'active' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <Filter size={16} />
-        <span>Filter</span>
+        <span>Filters</span>
+        {filteredCount !== undefined && (
+          <span className="filter-count-badge">
+            {filteredCount}/{totalCount}
+          </span>
+        )}
+        <svg
+          className={`chevron ${isOpen ? 'open' : ''}`}
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
       </button>
 
       {isOpen && (
-        <div className="filter-panel">
-          <div className="filter-header">
-            <h3>Filter</h3>
-            <button className="close-button" onClick={() => setIsOpen(false)}>
-              <X size={20} />
-            </button>
-          </div>
-          
-          <div className="filter-section">
-            <div className="filter-option">
-              <label>Status</label>
-              <select 
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-              >
-                {statusOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-option">
-              <label>Type</label>
-              <select 
-                value={filters.type}
-                onChange={(e) => handleFilterChange('type', e.target.value)}
-              >
-                {typeOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-option">
-              <label>Date</label>
-              <select 
-                value={filters.date}
-                onChange={(e) => handleFilterChange('date', e.target.value)}
-              >
-                {dateOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-option">
-              <label>Region</label>
-              <select 
-                value={filters.region}
-                onChange={(e) => handleFilterChange('region', e.target.value)}
-              >
-                {regionOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
+        <div className="filters-panel">
+          <div className="filters-section">
+            <label className="filters-label">SITE TYPE</label>
+            <div className="filters-buttons-group">
+              {siteTypes.map(type => (
+                <button
+                  key={type}
+                  className={`filter-type-btn ${filters.siteType.includes(type) ? 'active' : ''}`}
+                  onClick={() => handleTypeToggle(type)}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
           </div>
+
+          <div className="filters-section">
+            <label className="filters-label">CITY</label>
+            <select
+              className="filters-select"
+              value={filters.city}
+              onChange={(e) => handleSelectChange('city', e.target.value)}
+            >
+              <option value="">Select Cities</option>
+              <option value="Rijal Almaa">Rijal Almaa</option>
+              <option value="Shaqra">Shaqra</option>
+              <option value="Jazan">Jazan</option>
+              <option value="Riyadh">Riyadh</option>
+              <option value="Tabuk">Tabuk</option>
+              <option value="Al-Ula">Al-Ula</option>
+              <option value="Diriyah">Diriyah</option>
+              <option value="Al-Ahsa">Al-Ahsa</option>
+            </select>
+          </div>
+
+          <div className="filters-section">
+            <label className="filters-label">STATE</label>
+            <select
+              className="filters-select"
+              value={filters.state}
+              onChange={(e) => handleSelectChange('state', e.target.value)}
+            >
+              <option value="">Select States</option>
+              <option value="Asir">Asir</option>
+              <option value="Riyadh">Riyadh</option>
+              <option value="Jazan">Jazan</option>
+              <option value="Tabuk">Tabuk</option>
+              <option value="Al Madinah">Al Madinah</option>
+              <option value="Eastern Province">Eastern Province</option>
+            </select>
+          </div>
+
+          <div className="filters-section">
+            <label className="filters-label">PERIOD</label>
+            <div className="filters-buttons-group">
+              {periods.map(period => (
+                <button
+                  key={period}
+                  className={`filter-type-btn ${filters.period.includes(period) ? 'active' : ''}`}
+                  onClick={() => handlePeriodToggle(period)}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {hasActiveFilters && (
+            <div className="filters-section clear-section">
+              <button className="clear-all-btn" onClick={handleClearAll}>
+                Clear All
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
