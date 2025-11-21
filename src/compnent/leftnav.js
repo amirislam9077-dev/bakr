@@ -100,7 +100,7 @@ const LeftNav = ({ onLocationSelect, onViewSite }) => {
                   <line x1="10" y1="14" x2="21" y2="3"/>
                 </svg>
               </div>
-              <div className="location-type">{location.type} • {location.city} • {location.statePeriod}</div>
+              <div className="location-type"><span className="highlight-text">{location.type}</span> • {location.city} • <span className="highlight-text">{location.statePeriod}</span></div>
             </div>
           </div>
           ))
