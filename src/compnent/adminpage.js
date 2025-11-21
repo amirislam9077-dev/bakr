@@ -5,6 +5,7 @@ import AdminNav from './adminnav';
 import Dash from './dash';
 import Sites from './sites';
 import CreateSite from './createsite';
+import EditSite from './editsite';
 import Message from './message';
 import './adminpage.css';
 
@@ -19,6 +20,7 @@ const AdminPage = () => {
             <Route path="/" element={<Dash />} />
             <Route path="/sites" element={<Sites />} />
             <Route path="/sites/create" element={<CreateSite />} />
+            <Route path="/sites/edit/:id" element={<EditSite />} />
             <Route path="/messages" element={<Message />} />
           </Routes>
         </div>

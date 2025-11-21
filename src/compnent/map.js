@@ -274,6 +274,16 @@ const Map = ({ selectedLocation, onViewSite }) => {
           marker.addTo(mapInstanceRef.current);
         }
       });
+
+      // Reset map view to show all markers (default view)
+      const allMarkers = Object.values(markersRef.current);
+      if (allMarkers.length > 0) {
+        const group = new L.featureGroup(allMarkers);
+        mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1), {
+          animate: true,
+          duration: 0.5
+        });
+      }
       return;
     }
 

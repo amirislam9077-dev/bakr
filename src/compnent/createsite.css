@@ -263,6 +263,26 @@
   position: relative;
 }
 
+/* Loading and Error States */
+.loading-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.error-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #fef2f2;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .create-site-container {

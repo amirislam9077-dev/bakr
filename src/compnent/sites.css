@@ -256,39 +256,48 @@
 }
 
 .action-btn {
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 4px;
+  gap: 4px;
+  border: 1.5px solid;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-width: 55px;
+  height: 26px;
 }
 
 .action-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
 }
 
 .edit-btn {
   background-color: #d1fae5;
   color: #059669;
+  border-color: #059669;
 }
 
 .edit-btn:hover {
-  background-color: #a7f3d0;
+  background-color: #059669;
+  color: white;
 }
 
 .delete-btn {
   background-color: #fee2e2;
   color: #dc2626;
+  border-color: #dc2626;
 }
 
 .delete-btn:hover {
-  background-color: #fecaca;
+  background-color: #dc2626;
+  color: white;
 }
 
 /* New Site Form Styles */
@@ -445,6 +454,50 @@
   .new-site-form-container {
     padding: 16px;
   }
+}
+
+/* Actions Header */
+.actions-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.header-icon {
+  opacity: 0.7;
+}
+
+.header-icon.edit-icon {
+  color: #059669;
+}
+
+.header-icon.delete-icon {
+  color: #dc2626;
+}
+
+/* Loading and Error States */
+.sites-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 16px;
+  color: #059669;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.sites-error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  border: 1px solid #fecaca;
 }
 
 

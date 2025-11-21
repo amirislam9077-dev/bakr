@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './sites.css';
 
-export const sites = [
+// Default fallback data (used if API fails)
+const defaultSites = [
     {
       id: 1,
       name: 'Rijal Almaa Heritage Village',
@@ -85,25 +86,100 @@ export const sites = [
     }
   ];
 
+// Export sites for use in other components (will be updated from API)
+export let sites = defaultSites;
+
 const Sites = () => {
   const navigate = useNavigate();
+  const [sitesData, setSitesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All Types');
 
-  const filteredSites = sites.filter(site => {
-    const matchesSearch = site.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         site.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         site.state.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fetch sites from API on component mount
+  useEffect(() => {
+    const fetchSites = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/sites');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+          setSitesData(result.data);
+          // Update the exported sites variable
+          sites = result.data;
+        } else {
+          // Use default data if no data from API
+          setSitesData(defaultSites);
+          sites = defaultSites;
+        }
+      } catch (err) {
+        console.error('Error fetching sites:', err);
+        setError('Failed to load sites from database');
+        // Fallback to default data
+        setSitesData(defaultSites);
+        sites = defaultSites;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSites();
+  }, []);
+
+  // Use sitesData for filtering (from API or fallback)
+  const dataToFilter = sitesData.length > 0 ? sitesData : defaultSites;
+
+  const filteredSites = dataToFilter.filter(site => {
+    const matchesSearch = site.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         site.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         site.state?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === 'All Types' || site.type === filterType;
     return matchesSearch && matchesFilter;
   });
 
+  // Handle delete site
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this site?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/sites/${id}`, {
+        method: 'DELETE'
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        // Remove from local state
+        setSitesData(prev => prev.filter(site => site.id !== id));
+        alert('Site deleted successfully!');
+      } else {
+        alert('Error deleting site: ' + result.message);
+      }
+    } catch (err) {
+      console.error('Error deleting site:', err);
+      alert('Error deleting site');
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="sites-container">
+        <div className="sites-loading">Loading sites from database...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="sites-container">
+      {error && <div className="sites-error">{error} - Showing default data</div>}
       <div className="sites-header">
         <div className="sites-header-left">
           <h1 className="sites-title">Sites Management</h1>
-          <p className="sites-count">{filteredSites.length} sites</p>
+          <p className="sites-count">{filteredSites.length} sites {sitesData.length > 0 ? '(from database)' : '(default)'}</p>
         </div>
         <button
           className="sites-create-btn"
@@ -179,17 +255,19 @@ const Sites = () => {
                 <td>{site.period}</td>
                 <td>
                   <div className="site-actions">
-                    <button className="action-btn edit-btn">
+                    <button className="action-btn edit-btn" onClick={() => navigate(`/admin/sites/edit/${site.id}`)}>
                       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
+                      <span>Edit</span>
                     </button>
-                    <button className="action-btn delete-btn">
+                    <button className="action-btn delete-btn" onClick={() => handleDelete(site.id)}>
                       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
+                      <span>Delete</span>
                     </button>
                   </div>
                 </td>
