@@ -68,14 +68,14 @@ const Map = ({ selectedLocation, onViewSite }) => {
 
       // Add location marker at the center
       const locationIcon = createLocationIcon();
-      locationMarkerRef.current = L.marker([lat, lng], { 
-        icon: locationIcon, 
-        zIndexOffset: 1000 
+      locationMarkerRef.current = L.marker([lat, lng], {
+        icon: locationIcon,
+        zIndexOffset: 1000
       }).addTo(mapInstanceRef.current);
-      
+
       // Store the current coordinates for later use
       locationMarkerRef.current.coordinates = [lat, lng];
-      
+
       // Add click handler to the marker to toggle popup
       locationMarkerRef.current.on('click', (e) => {
         // Close if already open
@@ -84,98 +84,74 @@ const Map = ({ selectedLocation, onViewSite }) => {
           popupRef.current = null;
           return;
         }
-        
+
+        // Create site data from selectedLocation for popup
+        const siteData = {
+          name: selectedLocation.name,
+          type: selectedLocation.type || '',
+          city: selectedLocation.city || '',
+          state: selectedLocation.state || '',
+          period: selectedLocation.period || ''
+        };
+
         // Otherwise open the popup
-        openPopupAt(lat, lng);
-        
+        openPopupAt(lat, lng, siteData);
+
         // Ensure the popup is visible in the viewport
         setTimeout(() => {
           if (mapInstanceRef.current && popupRef.current) {
-            // Get the popup's pixel position
-            const point = mapInstanceRef.current.latLngToContainerPoint([lat, lng]);
             // Adjust the view to ensure the popup is visible
             mapInstanceRef.current.panBy([0, -100], { animate: true });
           }
         }, 50);
       });
 
-      // Find the marker for this location by comparing coordinates with tolerance
-      let foundMarker = null;
-      let foundSite = sites.find(s =>
-        Math.abs(s.coordinates.lat - lat) < 0.0001 &&
-        Math.abs(s.coordinates.lng - lng) < 0.0001
-      );
-
-      // Search through all markers to find matching one
-      for (const key in markersRef.current) {
-        const [markerLat, markerLng] = key.split('-').map(Number);
-        if (Math.abs(markerLat - lat) < 0.0001 && Math.abs(markerLng - lng) < 0.0001) {
-          foundMarker = markersRef.current[key];
-          break;
-        }
-      }
-
       // Force a small delay before centering to ensure the map is ready
       setTimeout(() => {
-        // Set the view with animation
-        mapInstanceRef.current.setView([lat, lng], 14, {
+        // Set the view with animation - zoom level 10 for more zoomed out view
+        mapInstanceRef.current.setView([lat, lng], 10, {
           animate: true,
           duration: 0.5,
           easeLinearity: 0.5
         });
 
-        // Ensure the view is set correctly after animation
+        // Open the popup automatically after the map has centered
         setTimeout(() => {
-          mapInstanceRef.current.panTo([lat, lng], {
-            animate: false
-          });
-        }, 100);
+          // Create site data from selectedLocation for popup
+          const siteData = {
+            name: selectedLocation.name,
+            type: selectedLocation.type || '',
+            city: selectedLocation.city || '',
+            state: selectedLocation.state || '',
+            period: selectedLocation.period || ''
+          };
+          openPopupAt(lat, lng, siteData);
+        }, 600);
       }, 10);
-
-      // Open the marker's popup after a short delay if marker is found
-      if (foundMarker) {
-        setTimeout(() => {
-          foundMarker.openPopup();
-          // One more view adjustment after popup opens to ensure centering
-          setTimeout(() => {
-            mapInstanceRef.current.panTo([lat, lng], {
-              animate: false
-            });
-          }, 100);
-        }, 500);
-      } else {
-        // Show popup for the selected location
-        openPopupAt(lat, lng);
-
-        // Remove existing location marker if any
-        if (locationMarkerRef.current) {
-          mapInstanceRef.current.removeLayer(locationMarkerRef.current);
-        }
-
-        // Add location marker at the center
-        const locationIcon = createLocationIcon();
-        locationMarkerRef.current = L.marker([lat, lng], { icon: locationIcon, zIndexOffset: 1000 })
-          .addTo(mapInstanceRef.current);
-
-        // Zoom to the selected location
-        mapInstanceRef.current.setView([lat, lng], 14, {
-          animate: true,
-          duration: 1
-        });
-      }
     }
   }, [selectedLocation]);
 
   // Function to open popup at specific coordinates
-  const openPopupAt = (lat, lng) => {
-    const site = sites.find(s =>
-      Math.abs(s.coordinates.lat - lat) < 0.0001 &&
-      Math.abs(s.coordinates.lng - lng) < 0.0001
-    );
-    
-    if (site) {
+  const openPopupAt = (lat, lng, siteData = null) => {
+    // First try to use provided site data, then search in sites array
+    let site = siteData;
+    if (!site || !site.name) {
+      site = sites.find(s =>
+        Math.abs(s.coordinates.lat - lat) < 0.0001 &&
+        Math.abs(s.coordinates.lng - lng) < 0.0001
+      );
+    }
+
+    // If we have site data with at least a name, show the popup
+    if (site && site.name) {
       const popupContent = createPopupContent(site);
-      
+
+      // Remove existing popup first
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+
       // Create popup with offset to position it above the marker
       popupRef.current = L.popup({
         className: 'custom-popup-container',
@@ -187,23 +163,25 @@ const Map = ({ selectedLocation, onViewSite }) => {
       })
         .setLatLng([lat, lng])
         .setContent(popupContent);
-        
-      // Open the popup
-      popupRef.current.openOn(mapInstanceRef.current);
-      
+
+      // Open the popup on the map
+      if (mapInstanceRef.current) {
+        popupRef.current.openOn(mapInstanceRef.current);
+      }
+
       // Ensure the popup is in the correct position
       if (popupRef.current && popupRef.current._container) {
         const popup = popupRef.current._container;
         popup.style.marginTop = '-40px'; // Additional offset to ensure it's above the marker
       }
-        
+
       // Add click handler to close button
       const closeButton = document.querySelector('.leaflet-popup-close-button');
       if (closeButton) {
         // Remove any existing event listeners to prevent duplicates
         const newCloseButton = closeButton.cloneNode(true);
         closeButton.parentNode.replaceChild(newCloseButton, closeButton);
-        
+
         newCloseButton.addEventListener('click', (e) => {
           e.stopPropagation();
           if (popupRef.current) {

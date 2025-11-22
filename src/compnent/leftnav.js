@@ -146,7 +146,11 @@ const LeftNav = ({ onLocationSelect, onViewSite }) => {
               const coords = location.coordinates.split(',').map(coord => parseFloat(coord.trim()));
               onLocationSelect({
                 name: location.name,
-                coordinates: coords
+                coordinates: coords,
+                type: location.type,
+                city: location.city,
+                state: location.state,
+                period: location.period
               });
             }}
           >
