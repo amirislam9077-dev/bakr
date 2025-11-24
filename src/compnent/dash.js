@@ -1,19 +1,64 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sites } from './sites';
 import './dash.css';
 
 const Dash = () => {
   const navigate = useNavigate();
+  const [apiSites, setApiSites] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Calculate statistics from sites data
-  const totalSites = sites.length;
-  const mountains = sites.filter(site => site.type === 'Mountain').length;
-  const valleys = sites.filter(site => site.type === 'Other').length;
-  const heritageSites = sites.filter(site => site.type === 'Heritage Site').length;
+  // Fetch sites from API
+  useEffect(() => {
+    const fetchSites = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/sites');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+          setApiSites(result.data);
+        } else {
+          // Fallback to hardcoded sites
+          setApiSites(sites);
+        }
+      } catch (err) {
+        console.error('Error fetching sites:', err);
+        // Fallback to hardcoded sites
+        setApiSites(sites);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSites();
+  }, []);
+
+  // Calculate statistics from API data
+  const totalSites = apiSites.length;
+
+  // Get unique site types and their counts
+  const typeStats = apiSites.reduce((acc, site) => {
+    const type = site.type || 'Unknown';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Convert to array for easier rendering
+  const typeStatsArray = Object.entries(typeStats).map(([type, count]) => ({
+    type,
+    count
+  }));
 
   // Get all sites for recent activity
-  const recentActivity = sites;
+  const recentActivity = apiSites;
+
+  if (loading) {
+    return (
+      <div className="dash-container">
+        <div className="loading-message">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="dash-container">
@@ -24,6 +69,7 @@ const Dash = () => {
 
       {/* Statistics Cards */}
       <div className="stats-grid">
+        {/* Total Sites Card */}
         <div className="stat-card">
           <div className="stat-icon green">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -35,38 +81,24 @@ const Dash = () => {
           <div className="stat-value">{totalSites}</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon yellow">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </div>
-          <div className="stat-label">MOUNTAINS</div>
-          <div className="stat-value">{mountains}</div>
-        </div>
+        {/* Dynamic Type Cards */}
+        {typeStatsArray.map((stat, index) => {
+          const colors = ['yellow', 'purple', 'pink', 'blue', 'orange'];
+          const colorClass = colors[index % colors.length];
 
-        <div className="stat-card">
-          <div className="stat-icon purple">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </div>
-          <div className="stat-label">VALLEYS</div>
-          <div className="stat-value">{valleys}</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon pink">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </div>
-          <div className="stat-label">HERITAGE SITES</div>
-          <div className="stat-value">{heritageSites}</div>
-        </div>
+          return (
+            <div key={stat.type} className="stat-card">
+              <div className={`stat-icon ${colorClass}`}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div className="stat-label">{stat.type.toUpperCase()}</div>
+              <div className="stat-value">{stat.count}</div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Create Button */}

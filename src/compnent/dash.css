@@ -26,10 +26,30 @@
 
 /* Statistics Grid */
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
   gap: 16px;
   margin-bottom: 24px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+}
+
+.stats-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.stats-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.stats-grid::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.stats-grid::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 .stat-card {
@@ -72,6 +92,16 @@
 .stat-icon.pink {
   background-color: #fce7f3;
   color: #db2777;
+}
+
+.stat-icon.blue {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.stat-icon.orange {
+  background-color: #ffedd5;
+  color: #ea580c;
 }
 
 .stat-label {

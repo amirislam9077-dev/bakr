@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Filter } from 'lucide-react';
 import './filter.css';
 
-const FilterComponent = ({ onFilterChange, filteredCount, totalCount }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const FilterComponent = ({ onFilterChange, filteredCount, totalCount, isOpen, onToggle }) => {
   const [filters, setFilters] = useState({
     siteType: [],
     city: '',
@@ -59,10 +58,13 @@ const FilterComponent = ({ onFilterChange, filteredCount, totalCount }) => {
     filters.period.length > 0;
 
   return (
-    <div className="filter-wrapper">
+    <div className="filter-wrapper" onClick={(e) => e.stopPropagation()}>
       <button
         className={`filters-toggle-btn ${isOpen ? 'active' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
       >
         <Filter size={16} />
         <span>Filters</span>
@@ -85,7 +87,7 @@ const FilterComponent = ({ onFilterChange, filteredCount, totalCount }) => {
       </button>
 
       {isOpen && (
-        <div className="filters-panel">
+        <div className="filters-panel" onClick={(e) => e.stopPropagation()}>
           <div className="filters-section">
             <label className="filters-label">SITE TYPE</label>
             <div className="filters-buttons-group">

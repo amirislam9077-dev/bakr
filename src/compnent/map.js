@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -6,7 +6,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import './map.css';
 import { sites } from './sites';
-import { MapPin } from 'lucide-react';
 import FilterComponent from './filter';
 
 // Create a custom location icon
@@ -28,7 +27,6 @@ const createLocationIcon = () => {
 };
 
 const Map = ({ selectedLocation, onViewSite }) => {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
@@ -40,7 +38,9 @@ const Map = ({ selectedLocation, onViewSite }) => {
     state: '',
     period: []
   });
-  const [filteredCount, setFilteredCount] = useState(sites.length);
+  const [apiSites, setApiSites] = useState([]);
+  const [filteredCount, setFilteredCount] = useState(0);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const tileLayerRef = useRef(null);
   const popupRef = useRef(null);
   const markersRef = useRef({});
@@ -48,10 +48,133 @@ const Map = ({ selectedLocation, onViewSite }) => {
   const clusterGroupRef = useRef(null);
   const locationMarkerRef = useRef(null);
 
+  // Fetch sites from API
+  useEffect(() => {
+    const fetchSites = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/sites');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+          setApiSites(result.data);
+          setFilteredCount(result.data.length);
+        } else {
+          // Fallback to hardcoded sites
+          setApiSites(sites);
+          setFilteredCount(sites.length);
+        }
+      } catch (err) {
+        console.error('Error fetching sites:', err);
+        // Fallback to hardcoded sites
+        setApiSites(sites);
+        setFilteredCount(sites.length);
+      }
+    };
+
+    fetchSites();
+  }, []);
+
+  // Create popup content
+  const createPopupContent = useCallback((site) => {
+    return '<div class="modern-popup">' +
+      '<div class="popup-header" style="background-color: #059669;">' +
+        '<h3 class="popup-title">' + site.name + '</h3>' +
+        '<span class="popup-badge">' + site.type + '</span>' +
+      '</div>' +
+      '<div class="popup-body">' +
+        '<div class="info-row">' +
+          '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<circle cx="12" cy="10" r="3"/>' +
+            '<path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>' +
+          '</svg>' +
+          '<span class="info-text">' + site.city + ', ' + site.state + '</span>' +
+        '</div>' +
+        '<div class="info-row">' +
+          '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>' +
+            '<line x1="16" y1="2" x2="16" y2="6"/>' +
+            '<line x1="8" y1="2" x2="8" y2="6"/>' +
+            '<line x1="3" y1="10" x2="21" y2="10"/>' +
+          '</svg>' +
+          '<span class="info-text">' + site.period + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<button class="view-details-btn" onclick="window.dispatchEvent(new CustomEvent(\'openViewPanel\', { detail: \'' + site.name + '\' }))">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+          '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
+          '<circle cx="12" cy="12" r="3"/>' +
+        '</svg>' +
+        'View Details' +
+      '</button>' +
+    '</div>';
+  }, []);
+
+  // Function to open popup at specific coordinates
+  const openPopupAt = useCallback((lat, lng, siteData = null) => {
+    // First try to use provided site data, then search in apiSites array
+    let site = siteData;
+    if (!site || !site.name) {
+      site = apiSites.find(s =>
+        Math.abs(s.coordinates.lat - lat) < 0.0001 &&
+        Math.abs(s.coordinates.lng - lng) < 0.0001
+      );
+    }
+
+    // If we have site data with at least a name, show the popup
+    if (site && site.name) {
+      const popupContent = createPopupContent(site);
+
+      // Remove existing popup first
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+
+      // Create popup with offset to position it above the marker
+      popupRef.current = L.popup({
+        className: 'custom-popup-container',
+        closeButton: true,
+        maxWidth: 280,
+        autoClose: false,
+        closeOnClick: false,
+        offset: L.point(0, -40) // This moves the popup up by 40 pixels
+      })
+        .setLatLng([lat, lng])
+        .setContent(popupContent);
+
+      // Open the popup on the map
+      if (mapInstanceRef.current) {
+        popupRef.current.openOn(mapInstanceRef.current);
+      }
+
+      // Ensure the popup is in the correct position
+      if (popupRef.current && popupRef.current._container) {
+        const popup = popupRef.current._container;
+        popup.style.marginTop = '-40px'; // Additional offset to ensure it's above the marker
+      }
+
+      // Add click handler to close button
+      const closeButton = document.querySelector('.leaflet-popup-close-button');
+      if (closeButton) {
+        // Remove any existing event listeners to prevent duplicates
+        const newCloseButton = closeButton.cloneNode(true);
+        closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+
+        newCloseButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (popupRef.current) {
+            popupRef.current.remove();
+            popupRef.current = null;
+          }
+        });
+      }
+    }
+  }, [apiSites, createPopupContent]);
+
   // Handle selected location changes
   useEffect(() => {
     if (selectedLocation && mapInstanceRef.current) {
-      const { coordinates, name } = selectedLocation;
+      const { coordinates } = selectedLocation;
       const [lat, lng] = coordinates;
 
       // Remove existing popup if any
@@ -129,108 +252,11 @@ const Map = ({ selectedLocation, onViewSite }) => {
         }, 600);
       }, 10);
     }
-  }, [selectedLocation]);
-
-  // Function to open popup at specific coordinates
-  const openPopupAt = (lat, lng, siteData = null) => {
-    // First try to use provided site data, then search in sites array
-    let site = siteData;
-    if (!site || !site.name) {
-      site = sites.find(s =>
-        Math.abs(s.coordinates.lat - lat) < 0.0001 &&
-        Math.abs(s.coordinates.lng - lng) < 0.0001
-      );
-    }
-
-    // If we have site data with at least a name, show the popup
-    if (site && site.name) {
-      const popupContent = createPopupContent(site);
-
-      // Remove existing popup first
-      if (popupRef.current) {
-        popupRef.current.remove();
-        popupRef.current = null;
-      }
-
-      // Create popup with offset to position it above the marker
-      popupRef.current = L.popup({
-        className: 'custom-popup-container',
-        closeButton: true,
-        maxWidth: 280,
-        autoClose: false,
-        closeOnClick: false,
-        offset: L.point(0, -40) // This moves the popup up by 40 pixels
-      })
-        .setLatLng([lat, lng])
-        .setContent(popupContent);
-
-      // Open the popup on the map
-      if (mapInstanceRef.current) {
-        popupRef.current.openOn(mapInstanceRef.current);
-      }
-
-      // Ensure the popup is in the correct position
-      if (popupRef.current && popupRef.current._container) {
-        const popup = popupRef.current._container;
-        popup.style.marginTop = '-40px'; // Additional offset to ensure it's above the marker
-      }
-
-      // Add click handler to close button
-      const closeButton = document.querySelector('.leaflet-popup-close-button');
-      if (closeButton) {
-        // Remove any existing event listeners to prevent duplicates
-        const newCloseButton = closeButton.cloneNode(true);
-        closeButton.parentNode.replaceChild(newCloseButton, closeButton);
-
-        newCloseButton.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (popupRef.current) {
-            popupRef.current.remove();
-            popupRef.current = null;
-          }
-        });
-      }
-    }
-  };
-  
-  // Create popup content
-  const createPopupContent = (site) => {
-    return '<div class="modern-popup">' +
-      '<div class="popup-header" style="background-color: #059669;">' +
-        '<h3 class="popup-title">' + site.name + '</h3>' +
-        '<span class="popup-badge">' + site.type + '</span>' +
-      '</div>' +
-      '<div class="popup-body">' +
-        '<div class="info-row">' +
-          '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-            '<circle cx="12" cy="10" r="3"/>' +
-            '<path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>' +
-          '</svg>' +
-          '<span class="info-text">' + site.city + ', ' + site.state + '</span>' +
-        '</div>' +
-        '<div class="info-row">' +
-          '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-            '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>' +
-            '<line x1="16" y1="2" x2="16" y2="6"/>' +
-            '<line x1="8" y1="2" x2="8" y2="6"/>' +
-            '<line x1="3" y1="10" x2="21" y2="10"/>' +
-          '</svg>' +
-          '<span class="info-text">' + site.period + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<button class="view-details-btn" onclick="window.dispatchEvent(new CustomEvent(\'openViewPanel\', { detail: \'' + site.name + '\' }))">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-          '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>' +
-          '<circle cx="12" cy="12" r="3"/>' +
-        '</svg>' +
-        'View Details' +
-      '</button>' +
-    '</div>';
-  };
+  }, [selectedLocation, openPopupAt]);
 
   // Handle filter changes
   useEffect(() => {
-    if (!mapInstanceRef.current || Object.keys(markersRef.current).length === 0) return;
+    if (!mapInstanceRef.current || Object.keys(markersRef.current).length === 0 || apiSites.length === 0) return;
 
     // Check if any filters are active
     const hasActiveFilters =
@@ -242,10 +268,10 @@ const Map = ({ selectedLocation, onViewSite }) => {
     // If no filters are active, show all markers
     if (!hasActiveFilters) {
       // Update count to show all sites
-      setFilteredCount(sites.length);
+      setFilteredCount(apiSites.length);
 
       // Show all markers
-      sites.forEach(site => {
+      apiSites.forEach(site => {
         const markerKey = `${site.coordinates.lat}-${site.coordinates.lng}`;
         const marker = markersRef.current[markerKey];
         if (marker && !mapInstanceRef.current.hasLayer(marker)) {
@@ -266,7 +292,7 @@ const Map = ({ selectedLocation, onViewSite }) => {
     }
 
     // Filter sites based on active filters
-    const filteredSites = sites.filter(site => {
+    const filteredSites = apiSites.filter(site => {
       // Filter by site type
       if (filters.siteType.length > 0 && !filters.siteType.includes(site.type)) {
         return false;
@@ -299,7 +325,7 @@ const Map = ({ selectedLocation, onViewSite }) => {
     // Show/hide markers based on filter
     const visibleMarkers = [];
 
-    sites.forEach(site => {
+    apiSites.forEach(site => {
       const markerKey = `${site.coordinates.lat}-${site.coordinates.lng}`;
       const marker = markersRef.current[markerKey];
 
@@ -364,7 +390,7 @@ const Map = ({ selectedLocation, onViewSite }) => {
     } else {
       console.warn('No visible markers to display');
     }
-  }, [filters]);
+  }, [filters, apiSites]);
 
   // Handle map click to close popup
   useEffect(() => {
@@ -406,6 +432,7 @@ const Map = ({ selectedLocation, onViewSite }) => {
     };
   }, [onViewSite]);
 
+  // Initialize map once
   useEffect(() => {
     let zoomTimeout;
 
@@ -433,10 +460,62 @@ const Map = ({ selectedLocation, onViewSite }) => {
 
       tileLayerRef.current = osmLayer;
 
-      // Add markers for all sites
-      const markers = [];
+      // Automatically zoom out after 1 second with smooth animation
+      zoomTimeout = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([23.8859, 45.0792], 5, {
+            animate: true,
+            duration: 1.5
+          });
+        }
+      }, 1000);
 
-      sites.forEach(site => {
+      // Force Leaflet to recalculate its size after DOM is ready
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 100);
+    }
+
+    // Also invalidate size on window resize
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup function
+    return () => {
+      if (zoomTimeout) {
+        clearTimeout(zoomTimeout);
+      }
+      window.removeEventListener('resize', handleResize);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Add markers when apiSites loads
+  useEffect(() => {
+    if (!mapInstanceRef.current || apiSites.length === 0) return;
+
+    // Clear existing markers
+    Object.values(markersRef.current).forEach(marker => {
+      if (mapInstanceRef.current.hasLayer(marker)) {
+        mapInstanceRef.current.removeLayer(marker);
+      }
+    });
+    markersRef.current = {};
+    markersArrayRef.current = [];
+
+    // Add markers for all sites
+    const markers = [];
+
+    apiSites.forEach(site => {
         // Create Google Maps style marker
         const siteIcon = L.divIcon({
           className: 'site-marker',
@@ -459,7 +538,7 @@ const Map = ({ selectedLocation, onViewSite }) => {
             id: site.id || `marker-${Math.random().toString(36).substr(2, 9)}`
           }
         )
-        .addTo(map);
+        .addTo(mapInstanceRef.current);
 
         // Store marker reference
         const markerKey = `${site.coordinates.lat}-${site.coordinates.lng}`;
@@ -511,55 +590,15 @@ const Map = ({ selectedLocation, onViewSite }) => {
         markers.push(marker);
       });
 
-      // Store markers array for clustering
-      markersArrayRef.current = markers;
+    // Store markers array for clustering
+    markersArrayRef.current = markers;
 
-      // Fit map to show all markers
-      if (markers.length > 0) {
-        const group = new L.featureGroup(markers);
-        map.fitBounds(group.getBounds().pad(0.1));
-      }
-
-      mapInstanceRef.current = map;
-
-      // Automatically zoom out after 1 second with smooth animation
-      zoomTimeout = setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([23.8859, 45.0792], 5, {
-            animate: true,
-            duration: 1.5
-          });
-        }
-      }, 1000);
-
-      // Force Leaflet to recalculate its size after DOM is ready
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 100);
+    // Fit map to show all markers
+    if (markers.length > 0) {
+      const group = new L.featureGroup(markers);
+      mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1));
     }
-
-    // Also invalidate size on window resize
-    const handleResize = () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup function
-    return () => {
-      if (zoomTimeout) {
-        clearTimeout(zoomTimeout);
-      }
-      window.removeEventListener('resize', handleResize);
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
+  }, [apiSites]);
 
   const handleZoomIn = () => {
     if (mapInstanceRef.current) {
@@ -662,16 +701,27 @@ const Map = ({ selectedLocation, onViewSite }) => {
       height: 'calc(100vh - 60px)',
       overflow: 'hidden'
     }}>
-      <div ref={mapRef} className="map-view" style={{
-        width: '100%',
-        height: '100%'
-      }}></div>
+      <div
+        ref={mapRef}
+        className="map-view"
+        onClick={() => {
+          if (isFilterOpen) {
+            setIsFilterOpen(false);
+          }
+        }}
+        style={{
+          width: '100%',
+          height: '100%'
+        }}
+      ></div>
 
       {/* Filter Button */}
       <FilterComponent
         onFilterChange={(newFilters) => setFilters(newFilters)}
         filteredCount={filteredCount}
-        totalCount={sites.length}
+        totalCount={apiSites.length}
+        isOpen={isFilterOpen}
+        onToggle={() => setIsFilterOpen(!isFilterOpen)}
       />
       
       {/* Zoom Controls */}

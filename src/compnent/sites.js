@@ -131,6 +131,9 @@ const Sites = () => {
   // Use sitesData for filtering (from API or fallback)
   const dataToFilter = sitesData.length > 0 ? sitesData : defaultSites;
 
+  // Get unique site types from the data
+  const uniqueTypes = ['All Types', ...new Set(dataToFilter.map(site => site.type).filter(Boolean))];
+
   const filteredSites = dataToFilter.filter(site => {
     const matchesSearch = site.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          site.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,10 +218,9 @@ const Sites = () => {
             onChange={(e) => setFilterType(e.target.value)}
             className="sites-filter-select"
           >
-            <option>All Types</option>
-            <option>Heritage Site</option>
-            <option>Mountain</option>
-            <option>Other</option>
+            {uniqueTypes.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
           </select>
         </div>
       </div>
